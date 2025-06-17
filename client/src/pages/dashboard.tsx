@@ -12,6 +12,9 @@ import { AiAssistant } from "@/components/ai-assistant";
 import { MemoryTools } from "@/components/memory-tools";
 import { TaskScheduler } from "@/components/task-scheduler";
 import { SystemStatus } from "@/components/system-status";
+import { VoiceAssistant } from "@/components/voice-assistant";
+import { AdvancedCharts } from "@/components/advanced-charts";
+import { DataAnalytics } from "@/components/data-analytics";
 
 export default function Dashboard() {
   const { user, logout } = useAuth();
@@ -75,12 +78,21 @@ export default function Dashboard() {
             
             {/* Data Visualization */}
             <DataVisualizer data={selectedData} />
+            
+            {/* Advanced Charts */}
+            <AdvancedCharts data={selectedData} />
+            
+            {/* Data Analytics */}
+            <DataAnalytics data={selectedData} />
           </div>
 
           {/* Right Column - AI Assistant & Tools */}
           <div className="space-y-6">
             {/* AI Assistant */}
             <AiAssistant data={selectedData} />
+            
+            {/* Voice Assistant */}
+            <VoiceAssistant />
             
             {/* Memory Tools */}
             <MemoryTools />
