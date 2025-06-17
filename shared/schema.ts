@@ -1,4 +1,4 @@
-import { pgTable, text, serial, timestamp, jsonb, boolean, varchar } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, timestamp, jsonb, boolean, varchar, integer } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -13,7 +13,7 @@ export const users = pgTable("users", {
 
 export const sessions = pgTable("sessions", {
   id: text("id").primaryKey(),
-  userId: serial("user_id").references(() => users.id),
+  userId: integer("user_id").references(() => users.id),
   data: jsonb("data").notNull(),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
@@ -21,11 +21,11 @@ export const sessions = pgTable("sessions", {
 
 export const files = pgTable("files", {
   id: serial("id").primaryKey(),
-  userId: serial("user_id").references(() => users.id),
+  userId: integer("user_id").references(() => users.id),
   filename: text("filename").notNull(),
   originalName: text("original_name").notNull(),
   mimeType: text("mime_type").notNull(),
-  size: serial("size").notNull(),
+  size: integer("size").notNull(),
   content: text("content"),
   metadata: jsonb("metadata"),
   createdAt: timestamp("created_at").defaultNow(),
@@ -33,7 +33,7 @@ export const files = pgTable("files", {
 
 export const tasks = pgTable("tasks", {
   id: serial("id").primaryKey(),
-  userId: serial("user_id").references(() => users.id),
+  userId: integer("user_id").references(() => users.id),
   title: text("title").notNull(),
   description: text("description"),
   completed: boolean("completed").default(false),
@@ -44,7 +44,7 @@ export const tasks = pgTable("tasks", {
 
 export const chatMessages = pgTable("chat_messages", {
   id: serial("id").primaryKey(),
-  userId: serial("user_id").references(() => users.id),
+  userId: integer("user_id").references(() => users.id),
   message: text("message").notNull(),
   response: text("response").notNull(),
   context: jsonb("context"),
@@ -53,7 +53,7 @@ export const chatMessages = pgTable("chat_messages", {
 
 export const systemLogs = pgTable("system_logs", {
   id: serial("id").primaryKey(),
-  userId: serial("user_id").references(() => users.id).nullable(),
+  userId: integer("user_id").references(() => users.id),
   level: varchar("level", { length: 10 }).notNull(),
   message: text("message").notNull(),
   metadata: jsonb("metadata"),
