@@ -1,0 +1,412 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Quantum Intelligence Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+  <style>
+    body { font-family: Arial, sans-serif; background: #0e0e0e; color: #fff; margin: 0; }
+    header { background: #111; padding: 15px; border-bottom: 2px solid #00ffcc; }
+    header h1 { margin: 0; color: #00ffcc; font-size: 1.4em; }
+    .panel { padding: 20px; }
+    input, button, textarea {
+      margin: 10px 0; padding: 10px; width: 100%;
+      background: #111; color: #fff; border: 1px solid #00ffcc;
+    }
+    #dataTable { width: 100%; border-collapse: collapse; margin-top: 20px; background: #1a1a1a; }
+    #dataTable th, #dataTable td { border: 1px solid #444; padding: 8px; }
+    footer {
+      background: #111; color: #aaa; text-align: center; padding: 10px;
+      font-size: 0.85em; border-top: 1px solid #333;
+    }
+    #systemReport { display:none; background:#1c1c1c; border:1px solid #00ffcc; padding:10px; margin-top:20px; font-size:0.85em; }
+  </style>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+</head>
+<body>
+
+<header>
+  <h1>🔒 Quantum Intelligence Dashboard</h1>
+</header>
+
+
+<div class="panel" id="authPanel">
+  <p>Enter authorized username, email and password to continue:</p>
+  <input type="text" id="usernameInput" placeholder="Username" />
+  <input type="email" id="emailInput" placeholder="Email" />
+  <input type="password" id="passwordInput" placeholder="Password" />
+  <button onclick="verifyAccess()">Unlock Dashboard</button>
+  <p id="errorMsg" style="color:red; display:none;">Access denied. Unauthorized user or password.</p>
+</div>
+
+
+<div class="panel" id="mainPanel" style="display:none;" data-locked="true">
+  <p>🔗 Paste a website link:</p>
+  <input type="text" id="urlInput" placeholder="https://..." />
+  <button onclick="fetchURL()">Fetch Website Info</button>
+
+  <p>📁 Upload a file (.csv, .json, .txt):</p>
+  <input type="file" id="fileInput" />
+
+  <div id="results"></div>
+
+  <p>🧠 Ask the AI Assistant about your data:</p>
+  
+  <p>🧠 Assistant Tips:</p>
+  <ul style="color:#aaa; font-size:0.9em;">
+    <li>Type: <b>"summary"</b> to summarize your data</li>
+    <li>Type: <b>"columns"</b> or <b>"fields"</b> to list headers</li>
+    <li>Type: <b>"insight"</b> or <b>"trends"</b> to get suggestions</li>
+    <li>Type: <b>"clear memory"</b> to reset the session</li>
+    <li>Type: <b>"export memory"</b> or click button to save memory</li>
+  </ul>
+  <p>🎤 <i>(Voice input coming soon...)</i></p>
+<textarea id="chatInput" placeholder="Ask something about the uploaded file..." rows="3"></textarea>
+  <button onclick="chatWithAssistant()">Ask</button>
+  <div id="chatResponse" style="margin-top:15px; font-style: italic;"></div>
+
+  
+  <p>🧠 Memory Tools:</p>
+  <button onclick="exportMemory()">💾 Export Memory</button>
+  <button onclick="showFullMemory()">📖 View Memory</button>
+  <button onclick="clearLogs()">🧽 Clear Logs</button>
+  <div id="memoryView" style="margin-top:15px; font-size:0.85em; color:#00ffcc;"></div>
+
+  
+<p>📅 Task Scheduler:</p>
+<textarea id="taskInput" placeholder="e.g. Remind me to check logs at 5pm"></textarea>
+<button onclick="addTask()">Add Task</button>
+<ul id="taskList" style="font-size:0.9em; color:#0f0;"></ul>
+
+<p>📈 Data Chart Preview (for CSV):</p>
+<canvas id="chartCanvas" height="200" style="background:#1e1e1e; margin-top:10px; width:100%;"></canvas>
+
+<p>🎤 Voice Assistant:</p>
+<button onclick="startVoice()">🎙️ Start Listening</button>
+<div id="voiceLog" style="color:#aaa; font-style:italic;"></div>
+
+  <div id="systemReport"></div>
+</div>
+
+<footer>
+  &copy; 2025 Radosavlevici Ervin Remus<br>
+  Emails: Ervin210@icloud.com | radosavlevici210@icloud.com | radosavlevic.ervin@gmail.com<br>
+  IBAN: GB45 NAIA 0708 0620 7951 39 | BIC: NAIAGB21 | SWIFT: MIDLGB22
+</footer>
+
+
+</html>
+
+<script>
+
+}
+
+function fetchURL(retry = false) {
+  const url = document.getElementById("urlInput").value.trim();
+  if (!url.startsWith("http://") && !url.startsWith("https://")) {
+    alert("⚠️ Enter a valid URL starting with http:// or https://");
+    return;
+  }
+  sessionMemory.fetchedURL = url;
+  document.getElementById("results").innerHTML = `<p>🔄 Fetching <i>${url}</i>...</p>`;
+  fetch("https://api.allorigins.win/raw?url=" + encodeURIComponent(url))
+    .then(response => {
+      if (!response.ok) throw new Error("Network response was not ok");
+      return response.text();
+    })
+    .then(data => {
+      document.getElementById("results").innerHTML =
+        "<h3>🌐 Website Preview:</h3><textarea rows='10'>" + data.slice(0, 1000) + "...</textarea>";
+      logMessage("✅ Successfully fetched content from: " + url);
+    })
+    .catch(() => {
+      if (!retry) {
+        logMessage("⚠️ First attempt to fetch failed, retrying...");
+        fetchURL(true);
+      } else {
+        document.getElementById("results").innerHTML = "<p style='color:red;'>❌ Could not fetch data from the provided link. Please check the URL.</p>";
+        logMessage("❌ Fetch failed after retry for: " + url);
+      }
+    });
+}
+
+  } else {
+    if (input.includes("help") || input.includes("what can you do")) {
+      reply = "🧠 I analyze CSV/JSON, fetch websites, track session memory, and export your logs.";
+    } else {
+      reply = "📂 Please upload a file or fetch a URL to begin.";
+    }
+  }
+
+  document.getElementById("chatResponse").innerText = reply;
+  sessionMemory.logs.push("🤖 Assistant replied: " + reply);
+}
+
+function exportMemory() {
+  const blob = new Blob([JSON.stringify(sessionMemory, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = 'sessionMemory.json';
+  link.click();
+  URL.revokeObjectURL(url);
+  logMessage("💾 Memory exported to file.");
+}
+
+function showFullMemory() {
+  document.getElementById("memoryView").innerText = JSON.stringify(sessionMemory, null, 2);
+  logMessage("📖 Full memory displayed.");
+}
+
+function clearLogs() {
+  sessionMemory.logs = [];
+  document.getElementById("systemReport").innerText = '';
+  logMessage("🧽 Logs cleared.");
+}
+
+
+
+window.addEventListener("beforeunload", () => {
+  localStorage.setItem("sessionMemory", JSON.stringify(sessionMemory));
+});
+
+</script>
+<script>
+
+function addTask() {
+  const task = document.getElementById("taskInput").value.trim();
+  if (task.length > 0) {
+    const li = document.createElement("li");
+    li.innerText = task + " ✅";
+    document.getElementById("taskList").appendChild(li);
+    logMessage("🗓️ Task added: " + task);
+  }
+}
+
+function drawChartFromCSV() {
+  try {
+    const csv = sessionMemory.uploadedFile;
+    if (!csv || !csv.includes(",")) throw new Error("Not enough CSV data");
+    const lines = csv.trim().split("\n");
+    const labels = [];
+    const values = [];
+    const headers = lines[0].split(",");
+    const yIndex = 1;
+    for (let i = 1; i < lines.length && i < 20; i++) {
+      const parts = lines[i].split(",");
+      labels.push(parts[0]);
+      values.push(parseFloat(parts[yIndex]) || 0);
+    }
+    const ctx = document.getElementById('chartCanvas').getContext('2d');
+    new Chart(ctx, {
+      type: 'line',
+      data: { labels, datasets: [{ label: headers[yIndex], data: values }] },
+      options: { responsive: true, plugins: { legend: { labels: { color: '#0f0' } } } }
+    });
+    logMessage("📈 Chart drawn for CSV data.");
+  } catch (e) {
+    logMessage("⚠️ Chart error: " + e.message);
+    document.getElementById("voiceLog").innerText = "Chart failed to render.";
+  }
+}
+
+function startVoice() {
+  try {
+    const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+    recognition.lang = "en-US";
+    recognition.start();
+    recognition.onresult = function(event) {
+      const transcript = event.results[0][0].transcript;
+      document.getElementById("chatInput").value = transcript;
+      document.getElementById("voiceLog").innerText = "You said: " + transcript;
+      chatWithAssistant();
+    };
+    logMessage("🎤 Voice recognition started.");
+  } catch (e) {
+    document.getElementById("voiceLog").innerText = "🎤 Voice not supported or blocked.";
+  }
+}
+
+</script>
+<script>
+
+function chatWithAssistant() {
+  const input = document.getElementById("chatInput").value.trim().toLowerCase();
+  sessionMemory.chatHistory.push(input);
+  let reply = "🤖 I'm processing your request...";
+
+  if (input.includes("remember everything")) {
+    sessionMemory.logs.push("🧠 Full memory saved.");
+    reply = "Memory captured.";
+  } else if (input.includes("clear memory")) {
+    sessionMemory = { uploadedFile: "", fetchedURL: "", chatHistory: [], logs: [] };
+    reply = "🧽 Memory cleared.";
+  } else if (input.includes("show report")) {
+    document.getElementById("systemReport").style.display = "block";
+    document.getElementById("systemReport").innerText = "📋 System Report:\n" + sessionMemory.logs.join("\n");
+    reply = "📄 Report generated below.";
+  } else if (input.includes("view memory")) {
+    showFullMemory();
+    reply = "🧠 Full session memory shown.";
+  } else if (input.includes("export memory")) {
+    exportMemory();
+    reply = "💾 Memory exported as a file.";
+  } else if (input.includes("clear logs")) {
+    clearLogs();
+    reply = "🧽 Logs have been cleared.";
+  } else if (input.includes("draw chart") || input.includes("show chart")) {
+    drawChartFromCSV();
+    reply = "📈 Chart preview generated from your data.";
+  } else if (input.includes("add task")) {
+    const taskText = input.replace("add task", "").trim();
+    document.getElementById("taskInput").value = taskText;
+    addTask();
+    reply = "🗓️ Task added: " + taskText;
+  } else if (sessionMemory.uploadedFile.length > 0) {
+    const lines = sessionMemory.uploadedFile.split("\n");
+    const headers = lines[0];
+    if (input.includes("summary")) {
+      reply = "📊 File Summary: " + (lines.length - 1) + " rows.";
+    } else if (input.includes("columns") || input.includes("fields")) {
+      reply = "📌 Data Fields: " + headers;
+    } else if (input.includes("insight") || input.includes("trend")) {
+      reply = "📈 Insight: Your file includes " + headers.split(",").length + " columns.";
+    } else {
+      reply = "✅ Data loaded. Ask for summary, chart, or insights.";
+    }
+  } else {
+    if (input.includes("help") || input.includes("what can you do")) {
+      reply = "🤖 I help with CSV/JSON analysis, link fetch, task logs, memory tools, chart drawing, and voice.";
+    } else {
+      reply = "📂 Please upload a file or fetch a URL to begin.";
+    }
+  }
+
+  document.getElementById("chatResponse").innerText = reply;
+  sessionMemory.logs.push("🤖 Assistant: " + reply);
+}
+
+</script>
+<script>
+
+document.getElementById("fileInput").addEventListener("change", (event) => {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  const fileName = file.name.toLowerCase();
+  const fileType = file.type;
+
+  reader.onload = () => {
+    sessionMemory.uploadedFile = reader.result;
+
+    if (fileName.endsWith(".csv")) {
+      Papa.parse(file, {
+        header: true,
+        complete: function(results) {
+          const data = results.data;
+          let html = "<h3>📊 CSV Preview:</h3><table id='dataTable'><thead><tr>";
+          Object.keys(data[0]).forEach(k => html += `<th>${k}</th>`);
+          html += "</tr></thead><tbody>";
+          data.forEach(row => {
+            html += "<tr>";
+            Object.values(row).forEach(val => html += `<td>${val}</td>`);
+            html += "</tr>";
+          });
+          html += "</tbody></table>";
+          document.getElementById("results").innerHTML = html;
+          logMessage("✅ CSV file parsed.");
+        }
+      });
+    } else if (fileName.endsWith(".json")) {
+      document.getElementById("results").innerHTML =
+        "<h3>📄 JSON File Content:</h3><textarea rows='12'>" + JSON.stringify(JSON.parse(reader.result), null, 2) + "</textarea>";
+      logMessage("✅ JSON file loaded.");
+    } else if (fileName.endsWith(".zip")) {
+      document.getElementById("results").innerHTML =
+        "<p>📦 ZIP file uploaded. Parsing of ZIP contents not supported yet in browser.</p>";
+      logMessage("📦 ZIP file recognized but not extracted (browser limitation).");
+    } else if (fileName.endsWith(".html")) {
+      document.getElementById("results").innerHTML =
+        "<h3>🌐 HTML File Content:</h3><textarea rows='12'>" + reader.result.slice(0, 2000) + "...</textarea>";
+      logMessage("✅ HTML file loaded.");
+    } else if (fileName.endsWith(".py") || fileName.endsWith(".txt")) {
+      document.getElementById("results").innerHTML =
+        "<h3>📄 Text File Content:</h3><textarea rows='12'>" + reader.result + "</textarea>";
+      logMessage("✅ Python/Text file loaded.");
+    } else {
+      document.getElementById("results").innerHTML =
+        "<p style='color:red;'>❌ Unsupported file format.</p>";
+      logMessage("❌ Unsupported file format: " + fileName);
+    }
+  };
+
+  reader.onerror = () => {
+    logMessage("❌ File reading error.");
+    alert("Failed to read file.");
+  };
+
+  reader.readAsText(file);
+});
+
+</script>
+<script>
+
+}
+
+</script>
+<script>
+
+function verifyAccess() {
+  const username = document.getElementById("usernameInput")?.value?.trim().toLowerCase();
+  const email = document.getElementById("emailInput")?.value?.trim().toLowerCase();
+  const password = document.getElementById("passwordInput")?.value;
+
+  const validUser = username === "ervin";
+  const validEmail = email === "ervin210@icloud.com";
+  const validPassword = password === "Quantum";
+
+  if (validUser && validEmail && validPassword) {
+    document.getElementById("authPanel").style.display = "none";
+    document.getElementById("mainPanel").style.display = "block";
+    localStorage.setItem("unlocked", "true");
+    logMessage("🔓 Access granted to " + username + " (" + email + ")");
+  } else {
+    document.getElementById("errorMsg").style.display = "block";
+    logMessage("❌ Login failed: " + username + " / " + email);
+  }
+}
+
+
+
+</script>
+<script>
+
+// Prevent access from VM/remote
+window.addEventListener("load", () => {
+  const userAgent = navigator.userAgent.toLowerCase();
+  const suspicious = ["vmware", "virtualbox", "vbox", "qemu", "hyperv", "headless", "remote", "rdp", "xen", "citrix"];
+  const blocked = suspicious.some(vm => userAgent.includes(vm));
+  const screenCheck = screen.width <= 800 || screen.height <= 600;
+
+  if (blocked || screenCheck) {
+    document.body.innerHTML = '<div style="padding:50px; color:red; background:#000; font-size:1.5em;">❌ Access denied: VM or remote session detected.</div>';
+    console.warn("Blocked VM/Remote access.");
+    return;
+  }
+
+  // Self-update placeholder: check for update from localStorage or server
+  const currentVersion = "1.0.0";
+  const storedVersion = localStorage.getItem("lastKnownVersion") || "1.0.0";
+  if (storedVersion !== currentVersion) {
+    alert("🆕 A new version is available. Please reload or fetch the latest update.");
+    logMessage("🆕 Detected version mismatch: " + storedVersion + " vs " + currentVersion);
+  }
+  localStorage.setItem("lastKnownVersion", currentVersion);
+});
+
+</script>
+</body>
